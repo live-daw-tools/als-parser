@@ -1,15 +1,20 @@
 {
-	"name": "node-als-parser",
-	"version": "1.0.2",
+	"name": "@live-daw-tools/als-parser",
+	"version": "1.0.3",
 	"main": "index.js",
 	"scripts": {
 		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-		"watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
+		"watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+		"publish": "npm publish --access=public"
+	},
+	"repository": {
+		"url": "git@github.com:live-daw-tools/live-daw-info.git",
+		"type": "git"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Jeff Griffiths (  https://github.com/jeffgca )",
 	"license": "ISC",
-	"description": "",
+	"description": "An experimental parser for Ableton Live Set files (  .als ) that extracts information about tracks, clips, and devices.",
 	"dependencies": {
 		"@elastic/micro-jq": "^1.8.0",
 		"xml2js": "^0.6.2",
