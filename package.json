@@ -5,7 +5,8 @@
 	"scripts": {
 		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
 		"watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-		"publish": "npm publish --access=public"
+		"publish": "npm publish --access=public",
+		"docs": "jsdoc -c jsdoc.config.json"
 	},
 	"repository": {
 		"url": "git@github.com:live-daw-tools/live-daw-info.git",
@@ -26,6 +27,7 @@
 	},
 	"devDependencies": {
 		"jest": "^30.2.0",
+		"jsdoc": "4.0.5",
 		"lodash-es": "^4.17.22"
 	}
 }
