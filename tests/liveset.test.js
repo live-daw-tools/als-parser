@@ -101,3 +101,101 @@ test('track and device parsing', async () => {
 	expect(kickTrack.devices.length).toBe(1)
 	expect(kickTrack.devices[0]).toBe('StereoGain')
 })
+
+test('LiveSet.create static factory creates an initialized instance', async () => {
+	let set = await LiveSet.create(TEST_PROJECT_FILE)
+	expect(set.initialized).toBe(true)
+	expect(set.info.name).toBe('Michelle.als')
+})
+
+test('LiveSet with autoInit: false does not auto-initialize', () => {
+	const set = new LiveSet(TEST_PROJECT_FILE, { autoInit: false })
+	expect(set.initialized).toBe(false)
+})
+
+test('LiveSet.init() initializes the set after autoInit: false', async () => {
+	const set = new LiveSet(TEST_PROJECT_FILE, { autoInit: false })
+	expect(set.initialized).toBe(false)
+	await set.init()
+	expect(set.initialized).toBe(true)
+	expect(set.info.name).toBe('Michelle.als')
+})
+
+test('LiveSet emits progress events during read', async () => {
+	const set = new LiveSet(TEST_PROJECT_FILE, { autoInit: false })
+	const stages = []
+
+	set.on('progress', (event) => {
+		stages.push(event.stage)
+	})
+
+	await set.init()
+
+	expect(stages).toContain('reading-file')
+	expect(stages).toContain('parsing-xml')
+	expect(stages).toContain('complete')
+})
+
+test('LiveSet progress events include percent values', async () => {
+	const set = new LiveSet(TEST_PROJECT_FILE, { autoInit: false })
+	const events = []
+
+	set.on('progress', (event) => {
+		events.push(event)
+	})
+
+	await set.init()
+
+	const completeEvent = events.find((e) => e.stage === 'complete')
+	expect(completeEvent).toBeDefined()
+	expect(completeEvent.percent).toBe(100)
+})
+
+test('LiveSet throws for non-existent file', async () => {
+	await expect(LiveSet.create('./nonexistent.als')).rejects.toThrow()
+})
+
+test('LiveSet tempo is formatted to 2 decimal places', async () => {
+	let set = await new LiveSet(TEST_PROJECT_FILE)
+	expect(set.tempo).toMatch(/^\d+\.\d{2}$/)
+})
+
+test('LiveSet info includes all expected top-level fields', async () => {
+	let set = await new LiveSet(TEST_PROJECT_FILE)
+	const info = set.info
+	expect(info).toHaveProperty('name')
+	expect(info).toHaveProperty('tempo')
+	expect(info).toHaveProperty('version')
+	expect(info).toHaveProperty('tracks')
+	expect(info).toHaveProperty('trackCount')
+	expect(info).toHaveProperty('size')
+	expect(info).toHaveProperty('sha256')
+})
+
+test('LiveSet tracks includes device info for each track', async () => {
+	let set = await new LiveSet('./tests/test-data/projects/Michelle-12.3.als')
+	const tracks = set.tracks
+
+	// All AudioTracks should have name, devices, and plugins arrays
+	tracks.AudioTrack.forEach((track) => {
+		expect(track).toHaveProperty('name')
+		expect(track).toHaveProperty('devices')
+		expect(track).toHaveProperty('plugins')
+		expect(Array.isArray(track.devices)).toBe(true)
+		expect(Array.isArray(track.plugins)).toBe(true)
+	})
+})
+
+test('LiveSet trackCount only counts AudioTrack and MidiTrack', async () => {
+	let set = await new LiveSet('./tests/test-data/projects/Michelle-12.3.als')
+	// trackCount specifically counts AudioTrack + MidiTrack (not GroupTrack/ReturnTrack)
+	expect(set.trackCount).toBe(9)
+})
+
+test('LiveSet parsed property exposes raw parsed XML', async () => {
+	let set = await new LiveSet(TEST_PROJECT_FILE)
+	const parsed = set.parsed
+	expect(parsed).toHaveProperty('$')
+	expect(parsed).toHaveProperty('LiveSet')
+	expect(parsed.LiveSet).toHaveProperty('Tracks')
+})
